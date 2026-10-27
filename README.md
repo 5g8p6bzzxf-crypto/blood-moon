@@ -16,6 +16,7 @@ Abra `index.html` no navegador. Opcionalmente, execute `python -m http.server 80
 - `style.css`: tema espacial responsivo.
 - `script.js`: fases, simulador e quiz.
 - `docs/validacao.md`: plano de testes RF01–RF12.
+- `docs/relatorio-desenvolvimento.md`: instruções de execução, uso de IA, prompts, dificuldades, correções e evidências sugeridas.
 
 ## GitHub Pages
 Em Settings → Pages, escolha Deploy from a branch, branch `main`, pasta `/ (root)` e salve.
