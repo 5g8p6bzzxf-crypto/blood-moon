@@ -1,0 +1,45 @@
+const phases=[
+{name:"Lua Nova",short:"Nova",day:0,light:0,desc:"A Lua fica aproximadamente entre a Terra e o Sol. A face iluminada está voltada para longe de nós, por isso quase não é visível.",hint:"O início de um novo ciclo."},
+{name:"Crescente Inicial",short:"Crescente inicial",day:3.7,light:12,desc:"Uma pequena faixa iluminada começa a aparecer. A porção iluminada aumenta a cada noite.",hint:"Um fino arco de luz começa a surgir."},
+{name:"Quarto Crescente",short:"Quarto crescente",day:7.4,light:50,desc:"Metade do disco lunar visível aparece iluminada. A Lua segue em direção à Lua Cheia.",hint:"Metade do disco aparece iluminada."},
+{name:"Gibosa Crescente",short:"Gibosa crescente",day:11.1,light:82,desc:"Mais da metade do disco visível está iluminada, mas ainda não chegou à Lua Cheia.",hint:"Mais da metade está iluminada."},
+{name:"Lua Cheia",short:"Cheia",day:14.8,light:100,desc:"A face voltada para a Terra aparece quase totalmente iluminada pelo Sol.",hint:"A face visível está totalmente iluminada."},
+{name:"Gibosa Minguante",short:"Gibosa minguante",day:18.5,light:82,desc:"Depois da Lua Cheia, a parte iluminada começa a diminuir. Ainda vemos mais da metade do disco iluminado.",hint:"A iluminação começa a diminuir."},
+{name:"Quarto Minguante",short:"Quarto minguante",day:22.1,light:50,desc:"Metade do disco lunar visível aparece iluminada, agora durante a fase minguante.",hint:"Metade do disco está iluminada novamente."},
+{name:"Minguante Final",short:"Minguante final",day:25.8,light:12,desc:"Resta uma pequena faixa iluminada antes de a Lua retornar à fase Nova.",hint:"Uma faixa fina antecede a Lua Nova."}];
+const $=id=>document.getElementById(id);let selected=4;
+function setMoon(el,i){el.className='moon phase-'+i+(el.id==='detailMoon'?' big':el.id==='simMoon'?' simmoon':'')}
+function showPhase(i){selected=(i+8)%8;const p=phases[selected];setMoon($('detailMoon'),selected);$('phaseName').textContent=p.name;$('phaseDesc').textContent=p.desc;$('phasePos').textContent='FASE '+String(selected+1).padStart(2,'0')+' DE 08';$('illum').textContent=p.light+'%';$('phaseDay').textContent='Dia '+p.day.toLocaleString('pt-BR',{maximumFractionDigits:1});document.querySelectorAll('.phase-option').forEach((b,j)=>{b.classList.toggle('active',j===selected);b.setAttribute('aria-pressed',String(j===selected))})}
+phases.forEach((p,i)=>{const b=document.createElement('button');b.className='phase-option';b.type='button';b.setAttribute('aria-pressed','false');b.innerHTML='<span class="moon phase-'+i+'"></span><strong>'+p.name+'</strong><small>'+p.light+'% ILUMINADA</small>';b.addEventListener('click',()=>showPhase(i));$('phaseGrid').appendChild(b)});
+$('prev').onclick=()=>showPhase(selected-1);$('next').onclick=()=>showPhase(selected+1);setMoon($('heroMoon'),4);showPhase(4);
+
+// Simulador: ciclo de 29,5 dias comprimido em cerca de 59 segundos a 1x.
+const cycle=29.5,seconds=59;let day=0,running=false,last=null,frame=null;
+function phaseAt(d){return Math.min(7,Math.floor(Math.min(d,29.499)/cycle*8))}
+phases.forEach((p,i)=>{const el=document.createElement('div');el.className='timeline-item';el.innerHTML='<span></span><div>'+String(i+1).padStart(2,'0')+' · '+p.name+'</div>';$('timeline').appendChild(el)});
+function updateSim(){const i=phaseAt(day),p=phases[i];setMoon($('simMoon'),i);$('simName').textContent=p.name;$('simHint').textContent=p.hint;$('day').textContent=day.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});$('cycleProgress').style.width=day/cycle*100+'%';$('timeline').querySelectorAll('.timeline-item').forEach((e,j)=>e.classList.toggle('active',j===i));$('simStatus').textContent=running?'SIMULAÇÃO EM EXECUÇÃO':day>=cycle?'CICLO CONCLUÍDO':'SIMULAÇÃO PAUSADA'}
+function tick(t){if(!running)return;if(last===null)last=t;day+=(t-last)/1000*(cycle/seconds)*Number($('speed').value);last=t;if(day>=cycle){day=cycle;running=false;last=null;$('start').disabled=false;$('pause').disabled=true;$('start').textContent='↻ Recomeçar'}updateSim();if(running)frame=requestAnimationFrame(tick)}
+$('start').onclick=()=>{if(day>=cycle)day=0;if(!running){running=true;last=null;$('start').disabled=true;$('pause').disabled=false;$('start').textContent='▶ Executando';updateSim();frame=requestAnimationFrame(tick)}};
+$('pause').onclick=()=>{running=false;last=null;if(frame!==null)cancelAnimationFrame(frame);$('start').disabled=false;$('pause').disabled=true;$('start').textContent='▶ Continuar';updateSim()};
+$('reset').onclick=()=>{running=false;last=null;if(frame!==null)cancelAnimationFrame(frame);day=0;$('start').disabled=false;$('pause').disabled=true;$('start').textContent='▶ Iniciar';updateSim()};
+$('speed').onchange=()=>{if(running)last=null};updateSim();
+
+// Quiz: uma resposta por questão, gabarito, explicação e pontuação.
+const bank=[
+{q:'Qual fase apresenta a face visível da Lua totalmente iluminada?',a:['Lua Nova','Lua Cheia','Quarto Crescente','Minguante Final'],c:1,e:'Na Lua Cheia, a face voltada para a Terra aparece totalmente iluminada.'},
+{q:'Qual é a duração aproximada de um ciclo completo de fases lunares?',a:['7 dias','14 dias','29,5 dias','365 dias'],c:2,e:'O ciclo sinódico lunar dura aproximadamente 29,5 dias.'},
+{q:'Em qual fase a Lua quase não é visível no céu noturno?',a:['Lua Nova','Lua Cheia','Gibosa Crescente','Quarto Minguante'],c:0,e:'Na Lua Nova, a face iluminada fica voltada predominantemente para longe da Terra.'},
+{q:'O que causa as fases da Lua?',a:['A sombra da Terra sempre cobre a Lua','A Lua muda de tamanho','Vemos diferentes porções da face iluminada pelo Sol','As nuvens cobrem a Lua'],c:2,e:'Vemos diferentes porções da metade lunar iluminada pelo Sol conforme a Lua orbita a Terra.'},
+{q:'Qual fase vem depois do Quarto Crescente?',a:['Lua Nova','Gibosa Crescente','Quarto Minguante','Minguante Final'],c:1,e:'Após o Quarto Crescente, a porção iluminada aumenta na Gibosa Crescente.'},
+{q:'Durante a fase minguante, o que acontece com a porção iluminada visível?',a:['Aumenta','Diminui gradualmente','Desaparece para sempre','A Lua deixa de refletir luz'],c:1,e:'Na fase minguante, a parte iluminada visível diminui até a Lua Nova.'},
+{q:'De onde vem a luz que vemos refletida pela Lua?',a:['Da própria Lua','Das estrelas','Do Sol','Da Terra exclusivamente'],c:2,e:'A Lua reflete a luz solar; ela não produz luz visível própria como uma estrela.'},
+{q:'Qual fase mostra aproximadamente metade do disco iluminado depois da Lua Nova?',a:['Quarto Crescente','Lua Cheia','Gibosa Minguante','Lua Nova'],c:0,e:'O Quarto Crescente ocorre no primeiro quarto do ciclo e mostra metade do disco iluminado.'}];
+let qs=[],qi=0,points=0,answered=false;
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function beginQuiz(){qs=shuffle(bank).map(q=>{const a=shuffle(q.a.map((text,i)=>({text,ok:i===q.c})));return {...q,a,correct:a.findIndex(x=>x.ok)}});qi=0;points=0;$('score').textContent='0';$('questionArea').hidden=false;$('result').hidden=true;renderQ()}
+function renderQ(){answered=false;const q=qs[qi];$('qCount').textContent='QUESTÃO '+String(qi+1).padStart(2,'0')+' / '+qs.length;$('quizProgress').style.width=qi/qs.length*100+'%';$('question').textContent=q.q;$('feedback').textContent='';$('feedback').className='';$('nextQ').disabled=true;$('nextQ').textContent=qi===qs.length-1?'Ver resultado →':'Próxima questão →';$('answers').replaceChildren();q.a.forEach((a,i)=>{const b=document.createElement('button');b.type='button';b.className='answer';b.innerHTML='<span class="letter">'+String.fromCharCode(65+i)+'</span><span>'+a.text+'</span>';b.onclick=()=>answer(i);$('answers').appendChild(b)})}
+function answer(i){if(answered)return;answered=true;const q=qs[qi],correct=i===q.correct;if(correct)points++;[...$('answers').children].forEach((b,j)=>{b.disabled=true;if(j===q.correct)b.classList.add('correct');else if(j===i)b.classList.add('incorrect')});$('feedback').className=correct?'good':'bad';$('feedback').textContent=(correct?'Resposta correta! ':'Não foi dessa vez. ')+q.e;$('score').textContent=points;$('quizProgress').style.width=(qi+1)/qs.length*100+'%';$('nextQ').disabled=false}
+$('nextQ').onclick=()=>{if(!answered)return;if(qi<qs.length-1){qi++;renderQ()}else finishQuiz()};
+function finishQuiz(){const percent=Math.round(points/qs.length*100);$('questionArea').hidden=true;$('result').hidden=false;$('resultTitle').textContent=percent>=88?'Astrônomo de plantão!':percent>=63?'Muito bem!':'Continue explorando!';$('resultText').textContent=percent>=88?'Excelente domínio das fases lunares.':percent>=63?'Você já conhece bastante. Revise o conteúdo e tente superar sua pontuação.':'Revise as fases lunares e faça uma nova tentativa.';$('finalScore').textContent=points+'/'+qs.length+' · '+percent+'% de aproveitamento'}
+$('retry').onclick=beginQuiz;beginQuiz();
+$('menuBtn').onclick=()=>{$('nav').classList.toggle('open')};$('nav').querySelectorAll('a').forEach(a=>a.onclick=()=>$('nav').classList.remove('open'));
